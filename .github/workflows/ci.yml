@@ -67,23 +67,23 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          Copy-Item "target/release/deck_cli.exe" "deck_cli.exe"
-          "ARTIFACT_NAME=deck_cli-windows.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "BINARY_PATH=deck_cli.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Copy-Item "target/release/bank_cli.exe" "bank_cli.exe"
+          "ARTIFACT_NAME=bank_cli-windows.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "BINARY_PATH=bank_cli.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Prepare macOS artifact
         if: matrix.os == 'macos-latest'
         run: |
-          cp target/release/deck_cli deck_cli
-          echo "ARTIFACT_NAME=deck_cli-macos" >> $GITHUB_ENV
-          echo "BINARY_PATH=deck_cli" >> $GITHUB_ENV
+          cp target/release/bank_cli bank_cli
+          echo "ARTIFACT_NAME=bank_cli-macos" >> $GITHUB_ENV
+          echo "BINARY_PATH=bank_cli" >> $GITHUB_ENV
 
       - name: Prepare Linux artifact
         if: matrix.os == 'ubuntu-latest'
         run: |
-          cp target/release/deck_cli deck_cli
-          echo "ARTIFACT_NAME=deck_cli-linux" >> $GITHUB_ENV
-          echo "BINARY_PATH=deck_cli" >> $GITHUB_ENV
+          cp target/release/bank_cli bank_cli
+          echo "ARTIFACT_NAME=bank_cli-linux" >> $GITHUB_ENV
+          echo "BINARY_PATH=bank_cli" >> $GITHUB_ENV
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -114,13 +114,13 @@ jobs:
       - name: Rename binaries for release
         run: |
           mkdir -p ./tmp-artifacts/
-          mv ./artifacts/deck_cli-linux/deck_cli ./tmp-artifacts/deck_cli-linux
-          mv ./artifacts/deck_cli-macos/deck_cli ./tmp-artifacts/deck_cli-macos
-          mv ./artifacts/deck_cli-windows.exe/deck_cli.exe ./tmp-artifacts/deck_cli-windows.exe
-          rm -rf ./artifacts/deck_cli-linux/
-          rm -rf ./artifacts/deck_cli-macos/
-          rm -rf ./artifacts/deck_cli-windows.exe/
-          mv ./tmp-artifacts/deck_cli-* ./artifacts/
+          mv ./artifacts/bank_cli-linux/bank_cli ./tmp-artifacts/bank_cli-linux
+          mv ./artifacts/bank_cli-macos/bank_cli ./tmp-artifacts/bank_cli-macos
+          mv ./artifacts/bank_cli-windows.exe/bank_cli.exe ./tmp-artifacts/bank_cli-windows.exe
+          rm -rf ./artifacts/bank_cli-linux/
+          rm -rf ./artifacts/bank_cli-macos/
+          rm -rf ./artifacts/bank_cli-windows.exe/
+          mv ./tmp-artifacts/bank_cli-* ./artifacts/
           rm -rf ./tmp-artifacts/
           ls -la ./artifacts/
 
@@ -141,13 +141,13 @@ jobs:
             - Latest changes from main branch
 
             ## Downloads
-            - Linux: deck_cli-linux
-            - macOS: deck_cli-macos  
-            - Windows: deck_cli-windows.exe
+            - Linux: bank_cli-linux
+            - macOS: bank_cli-macos  
+            - Windows: bank_cli-windows.exe
           files: |
-            ./artifacts/deck_cli-linux
-            ./artifacts/deck_cli-macos
-            ./artifacts/deck_cli-windows.exe
+            ./artifacts/bank_cli-linux
+            ./artifacts/bank_cli-macos
+            ./artifacts/bank_cli-windows.exe
           draft: false
           prerelease: false
         env:
