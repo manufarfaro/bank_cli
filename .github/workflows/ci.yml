@@ -1,0 +1,154 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: clippy, rustfmt
+          cache: true
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache: true
+
+      - name: Run tests
+        run: cargo test --all-features
+
+  build:
+    name: Build
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache: true
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Prepare Windows artifact
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          Copy-Item "target/release/bank_cli.exe" "bank_cli.exe"
+          "ARTIFACT_NAME=bank_cli-windows.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "BINARY_PATH=bank_cli.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Prepare macOS artifact
+        if: matrix.os == 'macos-latest'
+        run: |
+          cp target/release/bank_cli bank_cli
+          echo "ARTIFACT_NAME=bank_cli-macos" >> $GITHUB_ENV
+          echo "BINARY_PATH=bank_cli" >> $GITHUB_ENV
+
+      - name: Prepare Linux artifact
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cp target/release/bank_cli bank_cli
+          echo "ARTIFACT_NAME=bank_cli-linux" >> $GITHUB_ENV
+          echo "BINARY_PATH=bank_cli" >> $GITHUB_ENV
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.BINARY_PATH }}
+          if-no-files-found: error
+
+  release:
+    name: Create Release
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -la ./artifacts/*/
+
+      - name: Rename binaries for release
+        run: |
+          mkdir -p ./tmp-artifacts/
+          mv ./artifacts/bank_cli-linux/bank_cli ./tmp-artifacts/bank_cli-linux
+          mv ./artifacts/bank_cli-macos/bank_cli ./tmp-artifacts/bank_cli-macos
+          mv ./artifacts/bank_cli-windows.exe/bank_cli.exe ./tmp-artifacts/bank_cli-windows.exe
+          rm -rf ./artifacts/bank_cli-linux/
+          rm -rf ./artifacts/bank_cli-macos/
+          rm -rf ./artifacts/bank_cli-windows.exe/
+          mv ./tmp-artifacts/bank_cli-* ./artifacts/
+          rm -rf ./tmp-artifacts/
+          ls -la ./artifacts/
+
+      - name: Generate release tag
+        id: tag
+        run: |
+          echo "tag=v$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Release ${{ steps.tag.outputs.tag }}
+          body: |
+            Automated release for commit ${{ github.sha }}
+
+            ## Changes
+            - Latest changes from main branch
+
+            ## Downloads
+            - Linux: bank_cli-linux
+            - macOS: bank_cli-macos  
+            - Windows: bank_cli-windows.exe
+          files: |
+            ./artifacts/bank_cli-linux
+            ./artifacts/bank_cli-macos
+            ./artifacts/bank_cli-windows.exe
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
