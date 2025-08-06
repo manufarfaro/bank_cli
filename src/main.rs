@@ -26,16 +26,16 @@ impl Bank {
     }
 }
 
-fn print_account(account: &Account) {
-    println!("Account: {account:#?}");
+fn add_account(bank: &mut Bank, account: Account) {
+    bank.accounts.push(account);
 }
 
 fn main() {
-    let bank = Bank::new();
+    let mut bank = Bank::new();
 
     let account = Account::new(1, String::from("Manu"));
 
-    println!("Bank: {bank:#?}");
+    add_account(&mut bank, account);
 
-    print_account(&account);
+    println!("Bank: {bank:#?}");
 }
