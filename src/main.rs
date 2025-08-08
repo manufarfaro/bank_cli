@@ -1,4 +1,3 @@
-#[allow(dead_code)]
 #[derive(Debug)]
 struct Account {
     id: u32,
@@ -19,16 +18,46 @@ impl Account {
             balance: 0,
         }
     }
+
+    fn deposit(&mut self, amount: i32) -> i32 {
+        self.balance += amount;
+
+        self.balance
+    }
+
+    fn withdraw(&mut self, amount: i32) -> i32 {
+        self.balance -= amount;
+
+        self.balance
+    }
+
+    fn summary(&self) -> String {
+        format!(
+            "{}: {} has a balance of {}",
+            self.id, self.holder, self.balance
+        )
+    }
 }
 
 impl Bank {
     fn new() -> Self {
         Bank { accounts: vec![] }
     }
-}
 
-fn add_account(bank: &mut Bank, account: Account) {
-    bank.accounts.push(account);
+    fn add_account(&mut self, account: Account) {
+        self.accounts.push(account);
+    }
+
+    fn total_balance(&self) -> i32 {
+        self.accounts.iter().map(|account| account.balance).sum()
+    }
+
+    fn summary(&self) -> Vec<String> {
+        self.accounts
+            .iter()
+            .map(|account| account.summary())
+            .collect::<Vec<String>>()
+    }
 }
 
 fn main() {
@@ -36,7 +65,12 @@ fn main() {
 
     let account = Account::new(1, String::from("Manu"));
 
-    add_account(&mut bank, account);
+    bank.add_account(account);
 
-    println!("Bank: {bank:#?}");
+    bank.accounts[0].deposit(123);
+    bank.accounts[0].withdraw(33);
+    bank.accounts[0].deposit(123);
+
+    println!("{:#?}", bank.summary());
+    println!("{}", bank.total_balance());
 }
