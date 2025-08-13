@@ -8,6 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  APP_NAME: bank_cli
 
 jobs:
   lint:
@@ -67,23 +68,23 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          Copy-Item "target/release/bank_cli.exe" "bank_cli.exe"
-          "ARTIFACT_NAME=bank_cli-windows.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "BINARY_PATH=bank_cli.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Copy-Item "target/release/$env:APP_NAME.exe" "$env:APP_NAME.exe"
+          "ARTIFACT_NAME=$($env:APP_NAME)-windows.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "BINARY_PATH=$($env:APP_NAME).exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Prepare macOS artifact
         if: matrix.os == 'macos-latest'
         run: |
-          cp target/release/bank_cli bank_cli
-          echo "ARTIFACT_NAME=bank_cli-macos" >> $GITHUB_ENV
-          echo "BINARY_PATH=bank_cli" >> $GITHUB_ENV
+          cp target/release/$APP_NAME $APP_NAME
+          echo "ARTIFACT_NAME=$APP_NAME-macos" >> $GITHUB_ENV
+          echo "BINARY_PATH=$APP_NAME" >> $GITHUB_ENV
 
       - name: Prepare Linux artifact
         if: matrix.os == 'ubuntu-latest'
         run: |
-          cp target/release/bank_cli bank_cli
-          echo "ARTIFACT_NAME=bank_cli-linux" >> $GITHUB_ENV
-          echo "BINARY_PATH=bank_cli" >> $GITHUB_ENV
+          cp target/release/$APP_NAME $APP_NAME
+          echo "ARTIFACT_NAME=$APP_NAME-linux" >> $GITHUB_ENV
+          echo "BINARY_PATH=$APP_NAME" >> $GITHUB_ENV
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -114,13 +115,13 @@ jobs:
       - name: Rename binaries for release
         run: |
           mkdir -p ./tmp-artifacts/
-          mv ./artifacts/bank_cli-linux/bank_cli ./tmp-artifacts/bank_cli-linux
-          mv ./artifacts/bank_cli-macos/bank_cli ./tmp-artifacts/bank_cli-macos
-          mv ./artifacts/bank_cli-windows.exe/bank_cli.exe ./tmp-artifacts/bank_cli-windows.exe
-          rm -rf ./artifacts/bank_cli-linux/
-          rm -rf ./artifacts/bank_cli-macos/
-          rm -rf ./artifacts/bank_cli-windows.exe/
-          mv ./tmp-artifacts/bank_cli-* ./artifacts/
+          mv ./artifacts/$APP_NAME-linux/$APP_NAME ./tmp-artifacts/$APP_NAME-linux
+          mv ./artifacts/$APP_NAME-macos/$APP_NAME ./tmp-artifacts/$APP_NAME-macos
+          mv ./artifacts/$APP_NAME-windows.exe/$APP_NAME.exe ./tmp-artifacts/$APP_NAME-windows.exe
+          rm -rf ./artifacts/$APP_NAME-linux/
+          rm -rf ./artifacts/$APP_NAME-macos/
+          rm -rf ./artifacts/$APP_NAME-windows.exe/
+          mv ./tmp-artifacts/$APP_NAME-* ./artifacts/
           rm -rf ./tmp-artifacts/
           ls -la ./artifacts/
 
@@ -141,13 +142,13 @@ jobs:
             - Latest changes from main branch
 
             ## Downloads
-            - Linux: bank_cli-linux
-            - macOS: bank_cli-macos  
-            - Windows: bank_cli-windows.exe
+            - Linux: ${{ env.APP_NAME }}-linux
+            - macOS: ${{ env.APP_NAME }}-macos  
+            - Windows: ${{ env.APP_NAME }}-windows.exe
           files: |
-            ./artifacts/bank_cli-linux
-            ./artifacts/bank_cli-macos
-            ./artifacts/bank_cli-windows.exe
+            ./artifacts/${{ env.APP_NAME }}-linux
+            ./artifacts/${{ env.APP_NAME }}-macos
+            ./artifacts/${{ env.APP_NAME }}-windows.exe
           draft: false
           prerelease: false
         env:
