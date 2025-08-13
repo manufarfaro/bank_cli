@@ -1,5 +1,5 @@
 # Learning-Focused Rust Development Rules
-# Designed to help you learn Rust concepts while building your message delivery POC
+# Designed to help you learn Rust concepts while building your POC
 
 ## Core Learning Philosophy
 - NEVER write complete functions or large code blocks
