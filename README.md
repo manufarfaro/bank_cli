@@ -1,4 +1,4 @@
-# catalog_cli
+# bank_cli
 
 [![CI/CD Pipeline](https://github.com/manufarfaro/bank_cli/actions/workflows/ci.yml/badge.svg)](https://github.com/manufarfaro/bank_cli/actions/workflows/ci.yml)
 
